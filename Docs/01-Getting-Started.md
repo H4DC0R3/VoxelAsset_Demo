@@ -10,6 +10,8 @@ This section describes the basic workflow for creating, editing, and using voxel
 2. Create a new **Voxel Asset**
 3. Name the asset and open it
 
+![Voxel Asset Editor Overview](Images/Overview/VoxelAsset.png)
+
 Opening the asset launches the **Voxel Asset Editor**, which provides a dedicated viewport and toolset.
 
 ---
