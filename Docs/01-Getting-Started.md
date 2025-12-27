@@ -22,7 +22,8 @@ Inside the Voxel Asset Editor:
 - Use **Edit Tools** to create and modify voxel geometry
 - Use **Paint Tools** to assign palette colors
 - Configure palette slots and material parameters
-- Optionally create animation frames
+
+![Voxel Asset Editor Overview](Images/Overview/Editor.png)
 
 Changes are stored directly in the Voxel Asset.
 

@@ -2,6 +2,7 @@
 
 The plugin includes built-in performance tracking.
 
+  ![Voxel Subsystem](Images/Performace/PerformaceWindow.png)	
 ---
 
 ## Performance Panel
