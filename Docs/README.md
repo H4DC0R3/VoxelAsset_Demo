@@ -11,8 +11,10 @@ The plugin provides:
 
 This documentation covers editor tools, runtime usage, project settings, Blueprint functions, and performance guidelines.
 
-Current Project Version - UE 5.6
-Current Plugin Version - VE 1.0.0
+Source Compatibility
+
+# Current Engine Version - UE 5.6 
+# Current Plugin Version - VE 1.0.0
 
 ---
 
