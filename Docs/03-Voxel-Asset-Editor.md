@@ -118,6 +118,50 @@ Mirror options are available on X, Y, and Z axes.
 
 ---
 
+## Mirror System
+
+The editor includes a complete mirror workflow for symmetric editing and full-asset mirroring.
+
+### Live Mirror
+
+Live Mirror duplicates edit and paint operations while tools are being used.
+
+- **Mirror X** mirrors edits across the YZ plane.
+- **Mirror Y** mirrors edits across the XZ plane.
+- **Mirror Z** mirrors edits across the XY plane.
+- Multiple axes can be enabled at the same time.
+- Combined axes apply all mirrored combinations, including XYZ.
+
+Live Mirror works for voxel placement/removal and paint operations. Paint mirroring only paints existing voxels; it does not create new voxels.
+
+Mirror planes are displayed in the viewport:
+- X plane: red
+- Y plane: green
+- Z plane: blue
+
+### Apply Mirror
+
+Apply Mirror copies the current voxel mesh from one side of the selected axis to the other.
+
+Controls:
+- **Apply Mirror Axis**: X, Y, or Z
+- **Direction**: negative to positive or positive to negative
+- **Apply Mirror** button
+
+Use Apply Mirror when one side of the asset is already modeled and should be duplicated to the opposite side.
+
+### Apply Full Mirror
+
+Apply Full Mirror flips the entire voxel mesh on the selected axis.
+
+This is useful when the whole asset needs to be reversed, similar to matching a negative scale result without changing actor scale.
+
+### Odd Grid Alignment
+
+Mirror operations respect odd grid alignment where applicable. This keeps mirror planes aligned to the logical grid center and avoids half-cell offsets on assets that use odd alignment behavior.
+
+---
+
 
 ## Fixed Palettes and Custom Materials
 

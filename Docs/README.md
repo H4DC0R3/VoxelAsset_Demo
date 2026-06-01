@@ -1,22 +1,25 @@
-# Voxel Asset Plugin – Documentation
+# Voxel Asset Plugin Documentation
 
-This repository contains the official documentation for the **Voxel Asset Plugin**, a voxel-based asset creation and runtime destruction system for Unreal Engine.
+This repository contains the documentation for the Voxel Asset Plugin, a voxel asset creation and runtime destruction system for Unreal Engine.
 
 The plugin provides:
+
 - A dedicated Voxel Asset Editor
-- Runtime voxel rendering with procedural meshes or baked static mesh proxies
-- Destruction, damage, and animation systems
-- Streaming and performance-oriented rebuild scheduling
-- Full Blueprint API for gameplay integration
+- Sparse runtime voxel data with shared visual/collision templates
+- Optional Nanite runtime rendering for shared clusters and baked editor anchors
+- Standard StaticMesh runtime rendering with distance-based streaming
+- Runtime destruction, damage, and save/load APIs
+- Built-in performance tracking for sparse edits, streaming states, and runtime overrides
+- Blueprint API for gameplay integration
 
-This documentation covers editor tools, runtime usage, project settings, Blueprint functions, and performance guidelines.
+The documentation covers editor tools, project settings, runtime usage, Blueprint functions, streaming behavior, performance guidelines, and generated content paths.
 
-Source Compatibility
+## Source Compatibility
 
-# Current Engine Version - UE 5.7 
-# Current Plugin Version - VE 1.0.0
-
----
+- Current Engine Version: UE 5.7
+- Current Plugin Version: VE 1.2.0
+- Current Demo Project Version: 1.2.0.0
+- Supported Platform in this project package: Win64
 
 ## Documentation Index
 
@@ -29,19 +32,16 @@ Source Compatibility
 - [Animation System](07-Animation.md)
 - [Performance](08-Performance.md)
 - [Generated Content Paths](09-Content-Paths.md)
-
----
+- [Nanite Runtime Pipeline](10-Nanite-Runtime-Pipeline.md)
 
 ## Requirements
 
-- Unreal Engine 5.6 or newer
+- Unreal Engine 5.7
+- Win64 editor/runtime target
+- DirectX 12 and SM6 when using the Nanite runtime backend
 - Editor build with support for custom asset editors
 - Blueprint or C++ project
 
----
-
 ## Notes
 
-This documentation focuses on **how the system works internally**, **how to use it correctly**, and **how to avoid common performance pitfalls**.
-
-All examples assume default settings unless stated otherwise.
+All runtime examples assume the sparse runtime pipeline introduced in VE 1.2.0. The demo project is currently configured to use Nanite runtime rendering by default.

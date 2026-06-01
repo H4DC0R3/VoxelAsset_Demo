@@ -1,112 +1,127 @@
 # Blueprint API
 
-The plugin exposes a comprehensive Blueprint API for runtime voxel interaction.
+The plugin exposes Blueprint APIs for runtime voxel interaction through the Voxel Component and Voxel Runtime Blueprint Function Library.
 
-All voxel operations at runtime are performed through the **Voxel Component** using Blueprint-accessible functions.
-
----
-
-## Blueprint Usage Notes
-
-Blueprint actors can own and interact with a **Voxel Component** directly.
-
-However, **Blueprints cannot use or access the voxel runtime procedural mesh directly**.
-
-All runtime interaction with voxel data must be done through:
-
-- The Voxel Component
-- The provided Blueprint API functions
-
-The runtime voxel mesh is an internal implementation detail and is not to be used in Blueprints.
-
-- Rendering, streaming, and mesh updates are handled internally by the component
-- Direct access to mesh data is intentionally restricted for safety and performance
+Blueprints should interact with voxel data through these APIs. The internal runtime mesh components, sparse template cache, and generated StaticMesh/Nanite chunks are implementation details.
 
 ![Voxel Blueprint API](Images/BP/BP_Component.png)
 
----
+## Voxel Component Functions
+
+Voxel Component exposes:
+
+- RequestFullVoxelVisualRefresh
+- RequestFullVoxelVisualRefreshAsync
+- RequestVoxelRegionRefresh
+- WorldToVoxel
+- VoxelToWorld
+
+Use refresh functions only when a custom system changes voxel state outside the normal runtime delete, damage, or save/load APIs.
 
 ## Deletion Functions
 
 Deletion functions remove voxels instantly without applying damage.
 
-Supported operations include:
-- Delete single voxel
-- Delete box region
-- Delete sphere region
-- Component-specific variants
+Supported operations:
 
-Deletion functions return detailed information about affected voxels and components.
+- DeleteVoxel_Single
+- DeleteVoxel_Box
+- DeleteVoxel_Sphere
+- DeleteVoxel_BoxOnComponent
+- DeleteVoxel_SphereOnComponent
+- DestroyVoxelComponentCompletely
+
+World-scoped functions search for intersecting Voxel Components. Component-specific functions apply the operation only to the component passed in.
+
+Deletion functions return deleted voxel data and affected-neighbor data.
 
 ![Voxel Blueprint API](Images/BP/BP_Delete.png)
 
----
-
 ## Damage Functions
 
-Damage functions apply damage values to voxels before destruction.
+Damage functions apply damage to voxel health before removal.
 
-Supported operations include:
-- Apply damage to individual voxels
-- Apply damage over box or sphere regions
-- Automatic voxel destruction when health reaches zero
+Supported operations:
 
-Damage functions allow gradual destruction and gameplay-driven effects.
+- ApplyDamageToVoxels_Unique
+- ApplyDamageToVoxels_UniqueOnComponent
+- ApplyDamageToVoxels_Box
+- ApplyDamageToVoxels_BoxOnComponent
+- ApplyDamageToVoxels_Sphere
+- ApplyDamageToVoxels_SphereOnComponent
+
+Damage functions return destroyed voxel data and damaged-but-still-occupied voxel data.
 
 ![Voxel Blueprint API](Images/BP/BP_Damage.png)
 
----
-
 ## Save and Load Functions
 
-Save and load functions allow capturing and restoring voxel destruction state at runtime.
+Save/load functions capture and restore sparse runtime state.
 
-These functions are designed to:
-- Persist voxel modifications
-- Restore destroyed or damaged voxels
-- Avoid saving full voxel assets
+Supported operations:
 
-Typical usage includes:
-- Collecting voxel changes from active components
-- Serializing only modified voxel data
-- Reapplying voxel destruction during load
-- For the save/load function to work correctly, the subsystem must be enabled in the plugin settings.
+- SaveVoxelComponent
+- SaveAllVoxelComponents
+- LoadVoxelComponentFromData
+- LoadAllVoxelComponentsFromData
+- SaveAllVoxelComponentsAsync
+- LoadAllVoxelComponentsFromDataAsync
 
-Save and load operations are optimized to work on **delta data**, not full voxel grids.
+Save data is delta-based. It stores removed cells, damaged cells, remaining health, and whether a component was completely destroyed.
+
+Async save/load functions spread work across frames and expose per-tick count controls:
+
+- ActorsPerTick for async save.
+- ComponentsPerTick for async load.
 
 ![Voxel Blueprint API](Images/BP/BP_Save.png)
 
----
+## Returned Delete/Damage Data
 
-## Returned Data
+FRuntimeVoxelDeleteData contains:
 
-Deletion, damage, and save/load functions return structured runtime data, including:
+- WorldPositions
+- Colors
+- Extras
+- VoxelScales
+- AffectedComponents
 
-- World positions of affected voxels
-- Palette colors
-- Extra material data
-- Voxel scales (based on component or actor scale)s
-- Affected voxel components
+Use this data for hit reactions, particle spawning, dropped fragments, scoring, analytics, or gameplay effects.
 
-This data can be used for:
-- Gameplay reactions
-- Visual effects
-- Save systems
-- Analytics or debugging
+## Returned Save Data
 
----
+FRuntimeVoxelSaveData contains:
+
+- ActorName
+- ComponentName
+- Size
+- RemovedCells
+- DamagedCells
+- RemainingHealth
+- bComponentCompletelyDestroyed
+- SparseFormatVersion
+
+The current sparse save format version is 2.
 
 ## Helper Functions
 
-Utility functions provided by the API include:
+Utility functions include:
 
-- Merging multiple runtime voxel delete data entries
-- Computing the center point of voxel position arrays
+- MergeRuntimeVoxelDeleteDataArray
+- GetCenterOfPositions
+- GetRandomPercentageOfPositions
+- GetVoxelPerformanceSnapshot
+- ForLoopWithDelay
+- ForEachLoopWithDelay
 
-These helpers simplify post-processing of voxel operations.
+These helpers simplify post-processing, staggered Blueprint loops, and performance/debug UI.
 
 ![Voxel Blueprint API](Images/BP/BP_Extra.png)
 
+## Usage Notes
 
----
-
+- Do not modify generated runtime mesh components directly in Blueprint.
+- Use component-specific functions when the target Voxel Component is already known.
+- Use world-scoped functions when an explosion, projectile, or trace can affect multiple voxel actors.
+- Use save/load APIs instead of serializing full Voxel Assets.
+- Large runtime edits should be paired with conservative Runtime Sparse Pipeline budgets.

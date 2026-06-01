@@ -1,32 +1,67 @@
 # Performance
 
-The plugin includes built-in performance tracking.
+The plugin includes built-in performance tracking for runtime sparse edits, shared visual templates, local overrides, streaming states, and save/load.
 
-  ![Voxel Subsystem](Images/Performace/PerformaceWindow.png)	
----
+![Voxel Performance Panel](Images/Performace/PerformaceWindow.png)
 
 ## Performance Panel
 
-Displays:
+The performance panel displays runtime summary data, including:
+
 - Active components
-- Pending chunk builds
-- Build and commit times
-- Animation counts
+- Unique assets in world
+- Standard StaticMesh streaming state
+- Active local override builds
+- Recent saves and loads
+- Streaming visibility evaluation time
+- Runtime stream state counts
+- Pending local override chunks
+- Recent sparse runtime events
 
----
+## Runtime Pipeline Metrics
 
-## Runtime Snapshot
+The current runtime pipeline is:
 
-Blueprint-accessible snapshot of:
-- Build queues
-- Streaming state
-- Recent operations
+Sparse Template + Shared Visual/Collision + Local Overrides
 
----
+Important metrics:
+
+- Shared visual cluster count
+- Shared visual triangle count
+- Shared collision cluster count
+- Local edit chunk rebuild/apply time
+- Sparse edit generation time
+- Pending local override chunks
+- Override build in progress
+- Recent delete, damage, save, and load events
+
+## Blueprint Snapshot
+
+GetVoxelPerformanceSnapshot exposes performance data to Blueprint.
+
+Use it for:
+
+- Runtime debug UI
+- QA maps
+- Automated performance checks
+- Gameplay gates that need to wait for voxel work
+
+## Session Logs
+
+Runtime performance session logs are controlled by Project Settings > Voxel Editor.
+
+- Enable Runtime Performance Session Logs writes a compact report to Saved/VoxelEditor/PerformanceLogs when PIE stops.
+- Capture Runtime Performance Tick Timeline includes per-tick timeline entries.
+
+Keep tick timeline capture disabled for smaller logs unless detailed profiling is needed.
 
 ## Optimization Tips
 
-- Use baked proxies for large static assets
-- Limit concurrent builds
-- Tune chunk size carefully
-- Avoid excessive runtime rebuilds
+- Use Nanite runtime rendering for dense visual assets and large static environments.
+- Use Standard StaticMesh rendering when explicit distance hiding/freezing is required.
+- Increase Runtime Sparse Visual Cluster Size to reduce shared component count.
+- Lower Runtime Sparse Edit Chunk Size for more localized destruction updates.
+- Keep Runtime Override Build Budget Ms low enough to avoid frame spikes.
+- Limit Runtime Override Max Active Builds Per Frame when many voxel actors can be edited at once.
+- Prefer component-specific Blueprint functions when the target component is already known.
+- Use async save/load functions for worlds with many voxel components.
