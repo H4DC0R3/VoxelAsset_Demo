@@ -11,7 +11,7 @@ Physics behaviour is project-wide and configured in Project Settings > Voxel Edi
 The plugin has four modes, selected by Physics Mode. Two are validated for production; two are still being tuned.
 
 - **Simple** reacts only to a piece being cut off completely. While a slab still touches the structure by a single voxel, it hangs there. Detached islands become falling fragments. This mode only ever walks outwards from the damaged cells.
-- **Shatter (glass)** weighs nothing structural: every destroy or impact fractures the ring of voxels around the hit into random shards that fly off, the way glass breaks. It is local and fixed-cost — O(voxels near the hit), not O(object) — so it stays cheap on the large objects the structural modes bog down on, at the price of no real structural behaviour. It also drives the ImpactShatter Blueprint nodes.
+- **Shatter (glass)** runs no load solve: every destroy or impact fractures the ring of voxels around the hit into random shards that fly off, the way glass breaks. It is local and fixed-cost — O(voxels near the hit), not O(object) — so it stays cheap on the large objects the structural modes bog down on. It still detaches islands like Simple does, so a piece cut clean off still falls; what it does not do is ask whether what is left can carry its own weight. It also drives the ImpactShatter Blueprint nodes.
 - **Collapse (structural)** — *work in progress.* Also asks whether what remains can carry its own weight, so the same slab gives way once too little is left under it. This runs a structural solve of the whole anchored object on a worker thread.
 - **Topple (tipping)** — *work in progress.* Treats the whole standing object as one rigid body: while its centre of mass stays over the base it holds, but cut enough out from under one side and the object tips over and falls as a single piece, the way a felled tree or a toppled pillar does. It never asks whether the internal bonds can carry the load — only whether the object can still balance on what it stands on.
 
@@ -21,7 +21,7 @@ Simple is the cheapest and is enough for most props. Shatter is the choice for d
 
 ## Islands and the Anchor Face
 
-The island-based modes — Simple, Collapse, and Topple — rely on island detection. An island is one connected group of occupied voxels. (Shatter does not use islands or the anchor face; it fractures locally around the hit, covered in its own section below.)
+Every mode relies on island detection. An island is one connected group of occupied voxels. Cutting a piece clean off has to drop it whatever the mode is — Shatter adds its local fracture on top of that, it does not replace it.
 
 The Anchor Face is the face of the voxel grid bounding box that holds the object in place. The island touching that face stays; every other island is detached and falls.
 
@@ -106,7 +106,9 @@ Topple is a whole-object balance test, not a per-bond stress solve: it asks only
 
 ## Shatter
 
-Shatter is a local, structure-free fracture. It never asks what holds the object up — no anchor, no load, no worker-thread solve. When a destroy or damage happens in Shatter mode (or an ImpactShatter node fires), the shell of voxels around the hit is partitioned into random, connected shards, and each shard flies off as a simulated fragment. Because it only ever touches the voxels near the hit, its cost does not grow with the size of the object, which is what makes it usable on large models where the structural modes bog down.
+Shatter is a local fracture with no load solve — it never weighs the object or asks whether what remains can carry itself. When a destroy or damage happens in Shatter mode (or an ImpactShatter node fires), the shell of voxels around the hit is partitioned into random, connected shards, and each shard flies off as a simulated fragment. Because the fracture only ever touches the voxels near the hit, its cost does not grow with the size of the object, which is what makes it usable on large models where the structural modes bog down.
+
+Island detection still runs, once per hit, after the shards have been torn out. That is what makes a piece the fracture cut loose actually fall — eat through the middle of a beam and its far end is now a separate island, and it drops. Islands are cheap and incremental (the search only ever walks outwards from the damage), so this does not change Shatter's cost profile.
 
 ![Shatter Settings](Images/Physics/ShatterSettings.png)
 
@@ -144,7 +146,7 @@ The Destroyed and Damaged payloads are the same `FRuntimeVoxelDeleteData` the de
 ## Usage Notes
 
 - For production, choose **Simple** for props or **Shatter** for destructible glass, masonry, and large objects. Collapse and Topple are work-in-progress this release.
-- Set the Anchor Face to match how the object is held in the world (Simple, Collapse, and Topple; Shatter ignores it).
+- Set the Anchor Face to match how the object is held in the world. It matters in every mode, Shatter included: it is what island detection measures "still attached" against.
 - Assign Structural Profiles per material feel; Density and Bond Strength do most of the work. Shatter uses Density for shard mass even though it runs no structural solve.
 - Bind On Voxel Edited once instead of wiring the output of every destruction node — it fires for Shatter breaks too.
 - Collapse and Topple run authority-side and are not replicated; Shatter is deterministic per impact and needs no replication. See [Networking and Replication](12-Networking-Replication.md).
