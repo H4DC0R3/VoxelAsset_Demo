@@ -46,6 +46,16 @@ Location:
 
 Custom palettes are saved as project content so assets can reuse them and source control can track them.
 
+## Merged Structure Assets
+
+Location:
+
+- Chosen in the save dialog when the merge runs.
+
+Merging a Voxel Structure writes a new Voxel Asset wherever you point it. If the members did not already share a palette, two palette textures are written **into the same package**, named after the asset with the `_PaletteColor` and `_PaletteExtras` suffixes.
+
+They are kept beside the merged asset rather than added to the project-wide custom palette list on purpose: that list is shared by every asset, and consuming a slot from it would change what other assets see. See [Voxel Structures](14-Voxel-Structures.md).
+
 ## Runtime Generated Objects
 
 Runtime shared templates, local override chunks, and transient Nanite meshes are created at runtime and are not persisted as project assets.
@@ -55,6 +65,7 @@ Runtime save/load data should be stored through gameplay save systems using FRun
 ## Version Control Notes
 
 - Commit generated material instances, palette textures, and baked mesh proxies when they are required by shipped content.
+- Commit a merged structure asset together with the palette textures written into its package.
 - Commit Voxel Assets after changing voxel geometry or palette data.
 - Save all affected assets after changing runtime rendering or collision settings.
 - Do not commit runtime-only transient objects.
