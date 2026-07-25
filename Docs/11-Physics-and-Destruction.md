@@ -47,6 +47,19 @@ Fragment behaviour is controlled by the Voxel Physics settings:
 
 Fragments carry a self-contained save format, so a destroyed and fragmented object can be saved and restored.
 
+### Debris Settling (Sleep)
+
+A pile of resting debris is the worst case for physics sleeping: pieces lean on each other and trade tiny contact impulses forever, each one jiggling just enough to keep the whole pile awake. Hundreds of visually static pieces then keep costing solver time indefinitely.
+
+The plugin settles piles itself, in two layers:
+
+- Fragments get a more generous sleep threshold than ordinary bodies (**Fragment Sleep Threshold Multiplier**), so a piece that is merely trembling counts as settled for the engine's own sleep test.
+- A slow watchdog measures each awake piece's actual **travel** — not its momentary speed, because in-place jitter has speed but covers no ground. A piece that moves less than **Fragment Force Sleep Movement Cm** and turns less than **Fragment Force Sleep Angle Degrees** between checks (half a second apart, twice in a row) is put to sleep directly. The whole settled set is slept together in one pass, because physics sleeps by contact islands: slept one at a time, an awake neighbour would just wake each piece again — including the one wedged piece that pushes without moving, which is exactly what used to keep a chain of fragments awake forever.
+
+A slept piece behaves like any sleeping body: a hard enough hit wakes it, it simulates normally, and the watchdog puts it back down once it settles. **Fragment Max Depenetration Velocity** caps how hard the solver separates pieces that were *spawned* overlapping (debris is born inside the object it broke off), which keeps the birth pop gentle.
+
+The defaults (4x threshold, 2 cm, 1 degree, 200 cm/s) settle a debris field within a couple of seconds of it coming to rest. Raise the tolerances if a pile still refuses to sleep; lower them if pieces freeze while visibly sliding.
+
 ## Structural Profiles (Materials)
 
 Structural behaviour is driven by named material profiles, configured under Voxel Physics > Material as Structural Profiles.
@@ -122,7 +135,7 @@ The Voxel Physics > Shatter category tunes the break:
 - **Max Spawns Per Frame** — how many shard bodies are built per frame. A big fracture removes its voxels at once, but spreads the (more expensive) body creation over the next few frames so the hit does not spike a single frame.
 - **Collision Delay Seconds** — a shard is born inside the source's still-solid collision, so for this long it flies with its collision responses off — passing through the object and the other shards — then they switch back on once it has cleared the crater.
 
-Shards are deterministic from the impact position, so every networked peer produces the same break without replicating a single fragment. See [Networking and Replication](12-Networking-Replication.md).
+Shards are deterministic from the impact position, so every networked peer computes the same break. In multiplayer the shard **bodies** are additionally server-authoritative: the server spawns them and their movement replicates, so every player sees the same pieces land in the same places — automatically, with no setup. See [Networking and Replication](12-Networking-Replication.md).
 
 The **ImpactShatter** Blueprint nodes (`ImpactShatter_Sphere`, `ImpactShatter_OnComponent`) fracture an area on demand without a destroy — a bullet cracking a pane, for instance — regardless of the object's Physics Mode. They still respect the object's physics flag, so a piece marked non-physical is never shattered.
 
@@ -149,5 +162,5 @@ The Destroyed and Damaged payloads are the same `FRuntimeVoxelDeleteData` the de
 - Set the Anchor Face to match how the object is held in the world. It matters in every mode, Shatter included: it is what island detection measures "still attached" against.
 - Assign Structural Profiles per material feel; Density and Bond Strength do most of the work. Shatter uses Density for shard mass even though it runs no structural solve.
 - Bind On Voxel Edited once instead of wiring the output of every destruction node — it fires for Shatter breaks too.
-- Collapse and Topple run authority-side and are not replicated; Shatter is deterministic per impact and needs no replication. See [Networking and Replication](12-Networking-Replication.md).
+- Collapse and Topple run authority-side and are not replicated. Shatter replicates: the fracture is deterministic per impact, and in multiplayer the debris itself is server-authoritative so it matches on every machine. See [Networking and Replication](12-Networking-Replication.md).
 - A building made of several assets needs a Voxel Structure to collapse as one building. See [Voxel Structures](14-Voxel-Structures.md).

@@ -14,7 +14,13 @@ Cut the ground floor away and floor 3 never moves, because nothing ever told it 
 
 ## Setup
 
-Place a **Voxel Structure** actor in the level and list the members.
+Place a **Voxel Structure** actor in the level: search for it in the Place Actors panel (or the Quickly Add menu) and drag it in. It is an invisible helper actor — where it sits does not matter, only its member list does.
+
+![Finding the Voxel Structure actor](Images/Overview/VoxelStructureActor_01.png)
+
+Then select it and list the members in the Details panel.
+
+![Voxel Structure Details panel](Images/Overview/VoxelStructureActor_02.png)
 
 - **Members** — the voxel actors that make up this building. Order does not matter: which piece rests on which is worked out from where the pieces actually are, so re-ordering the list changes nothing.
 - **Is Foundation** (per member) — this piece is held by the world itself, whatever is or is not under it. Leave it off for an ordinary stack; whatever ends up at the bottom is treated as grounded anyway. Turn it on for pieces anchored to something outside the building — a floor bolted into a cliff, the far end of a bridge — because grounding is resolved by following supports downwards, and those walks have to end somewhere.

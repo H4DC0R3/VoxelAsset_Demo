@@ -11,7 +11,7 @@ The plugin provides:
 - Runtime destruction, damage, and save/load APIs
 - Structural physics with fragments, an anchor face, and an optional collapse solver
 - Multi-asset structures, so a building made of one asset per floor collapses as one building
-- Multiplayer replication for destruction and damage
+- Multiplayer replication for destruction and damage, with server-authoritative shatter debris
 - A global Niagara VFX spawner driven by voxel edits
 - Built-in performance tracking for sparse edits, streaming states, and runtime overrides
 - Blueprint API for gameplay integration

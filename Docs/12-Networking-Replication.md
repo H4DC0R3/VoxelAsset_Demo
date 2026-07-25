@@ -1,6 +1,6 @@
 # Networking and Replication
 
-Runtime destruction, damage, and shatter can replicate in multiplayer. The server applies an edit and every client re-runs the exact same shape locally, so the world stays in sync without ever sending voxel lists — or fragments — over the wire.
+Runtime destruction, damage, and shatter can replicate in multiplayer. The server applies an edit and every client re-runs the exact same shape locally, so the world stays in sync without ever sending voxel lists over the wire. Shatter debris additionally follows the server's simulation, so the pieces land in the same places for every player.
 
 ## Replication Model
 
@@ -47,9 +47,15 @@ How a physics mode behaves on the network depends on the mode:
 - **Simple** and **Shatter** replicate. The edit that drives them — a destroy, a damage, or an ImpactShatter — is multicast by parameters, and each peer re-runs the detachment or fracture against its own copy of the object.
 - **Collapse** and **Topple** are authority-side only and do not replicate this release. The structural solve runs on the server; clients are not driven from it. (Both are work in progress.)
 
-**Fragments are never replicated — by design.** A shatter or a detachment can spawn dozens of fragment actors, and streaming them and their per-frame physics over the wire would be both expensive and fragile. Instead the break is made **deterministic**: every random choice — which cells seed which shard, the outward velocity, the spin — is drawn from a seed derived from the impact position, so every machine runs the identical fracture and produces byte-identical debris without a single fragment crossing the network. Both `ImpactShatter_Sphere` and Shatter-mode destroy/damage rely on this.
+**Shatter debris is server-authoritative in multiplayer — automatically.** The fracture itself is still deterministic: every random choice — which cells seed which shard, the outward velocity, the spin — is drawn from a seed derived from the impact position, and every machine runs the identical break. But physics simulation is *not* deterministic across machines, so identically-born pieces would drift to different resting places on each client, and shooting a pile would then hit different pieces per machine. So in a networked game only the server spawns the shard bodies:
 
-There is an important consequence for the shatter nodes: `ImpactShatter_Sphere` makes the break **without a delete of its own** — the impact fractures the surface into flying shards rather than carving a hole — yet it still replicates, because the fracture is reproduced from the origin on every peer rather than sent. For that reproduction to match, the impact origin is replicated at full precision (not net-quantized), and the fragment actors themselves are never set to replicate.
+- **Identity replicates, content does not.** Each shard's replicated actor carries only its identity (source component, fracture seed, shard index). The client already computed that shard's voxels in its own run of the same edit, so it rebuilds the piece locally and adopts the server's actor — no voxel data crosses the wire.
+- **Movement is the server's.** The client simulates the piece for smooth motion and the engine corrects it toward the server's state, so every player sees — and can destroy — the same debris in the same places.
+- **Settled debris costs nothing.** A piece that falls asleep goes net-dormant: a resting pile uses no bandwidth, and wakes back onto the network when something hits it.
+
+None of this needs setup; it is how Shatter behaves whenever the world is networked. Standalone games are untouched. Simple-mode island fragments keep the deterministic local model (each peer detaches its own copy).
+
+There is an important consequence for the shatter nodes: `ImpactShatter_Sphere` makes the break **without a delete of its own** — the impact fractures the surface into flying shards rather than carving a hole — and it replicates like any other world-scoped node, with the impact origin sent at full precision (not net-quantized) so every peer derives the same fracture seed. A break made by a purely local call (`ImpactShatter_OnComponent`, or a client node without the proxy component) has no server counterpart, so its debris stays local, exactly like the rest of that edit.
 
 ## Reading Results on Clients
 
@@ -69,6 +75,6 @@ Tag-based edits read Actor tags locally on each machine with Actor Has Tag, so t
 - Add the Voxel Net Proxy Component to the PlayerController once, early in the project.
 - Drive gameplay reactions from On Voxel Edited so client and server share one code path — it fires for destroy, damage, and shatter alike.
 - Keep replicated edits on world-scoped nodes; use `*OnComponent` nodes only for local, non-networked effects.
-- Use ImpactShatter_Sphere (not the _OnComponent variant) when the break has to appear on every client; the debris is reproduced locally on each peer, never sent.
+- Use ImpactShatter_Sphere (not the _OnComponent variant) when the break has to appear on every client; the shard contents are reproduced locally on each peer, and the server's bodies keep the debris identical everywhere.
 - Collapse and Topple are authority-side only this release — do not depend on them being visible on clients.
 - Do not rely on replicated destruction for late joiners; it is real-time only.
