@@ -75,6 +75,8 @@ Select the Voxel Structure actor and press **Merge Into New Voxel Asset** in the
 
 It asks where to save, bakes every member into one new asset, and saves it. **Nothing in the level is touched** — the building stays exactly as it is, and a new asset appears in the content browser.
 
+The same merge engine is also available as a standalone tab — **Voxel Editor → Voxel Merge** — that works on any voxel meshes picked from the viewport, previews viability before building, and can optionally replace the source actors in the level. See [Voxel Merge Tool](15-Voxel-Merge-Tool.md). The button here is a shortcut that feeds it this structure's member list.
+
 What it does:
 
 - **One grid out of many.** Members sit at arbitrary transforms with no grid in common, so the merge picks a single world-aligned grid covering all of them and rasterises each member's voxels into it. A member rotated at an odd angle still comes out solid. Everything outside the members is left empty.

@@ -11,6 +11,7 @@ The plugin provides:
 - Runtime destruction, damage, and save/load APIs
 - Structural physics with fragments, an anchor face, and an optional collapse solver
 - Multi-asset structures, so a building made of one asset per floor collapses as one building
+- A Voxel Merge tool that bakes voxel meshes from the level into one new asset, like Merge Actors
 - Multiplayer replication for destruction and damage, with server-authoritative shatter debris
 - A global Niagara VFX spawner driven by voxel edits
 - Built-in performance tracking for sparse edits, streaming states, and runtime overrides
@@ -41,6 +42,7 @@ The documentation covers editor tools, project settings, runtime usage, Blueprin
 - [Networking and Replication](12-Networking-Replication.md)
 - [VFX and Particle System](13-VFX-Particle-System.md)
 - [Voxel Structures (Multi-Asset Buildings)](14-Voxel-Structures.md)
+- [Voxel Merge Tool](15-Voxel-Merge-Tool.md)
 
 ## Requirements
 
